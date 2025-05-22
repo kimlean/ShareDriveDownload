@@ -1,11 +1,12 @@
-from fastapi import FastAPI, Request, Response, Header, HTTPException, Path
+from fastapi import FastAPI, Response, Header, HTTPException, Path
 from fastapi.responses import StreamingResponse
-from pathlib import Path
+from pathlib import Path as SysPath
 from typing import Optional
 
 app = FastAPI()
 
-BASE_DIR = Path("file")  # Directory where files are stored
+BASE_DIR = SysPath("file")  # Folder for downloadable files
+BASE_DIR.mkdir(exist_ok=True)
 
 @app.head("/download/{filename}")
 async def head_download(filename: str = Path(...)):
@@ -16,10 +17,7 @@ async def head_download(filename: str = Path(...)):
     return Response(headers={"Content-Length": str(file_size)})
 
 @app.get("/download/{filename}")
-async def download(
-    filename: str = Path(...),
-    range: Optional[str] = Header(None)
-):
+async def download(filename: str = Path(...), range: Optional[str] = Header(None)):
     file_path = BASE_DIR / filename
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found")
@@ -64,3 +62,9 @@ async def download(
         return StreamingResponse(file_iterator(start, end), status_code=206, headers=headers)
     else:
         return StreamingResponse(file_iterator(start, end), headers=headers)
+
+
+# Optional: allow direct execution with `python main.py`
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=3300, reload=False)
