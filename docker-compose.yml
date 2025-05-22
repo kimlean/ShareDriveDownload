@@ -1,0 +1,13 @@
+version: '3.9'
+
+services:
+  fastapi:
+    build: .
+    container_name: fastapi_app
+    ports:
+      - "${APP_PORT}:3300"
+    volumes:
+      - ./file:/app/file
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: always
